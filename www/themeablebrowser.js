@@ -86,7 +86,7 @@ ThemeableBrowser.prototype = {
     }
 };
 
-exports.open = function(strUrl, strWindowName, strWindowFeatures, callbacks) {
+exports.open = function(strUrl, strWindowName, strWindowFeatures, strWindowHeaders, callbacks) {
     // Don't catch calls that write to existing frames (e.g. named iframes).
     if (window.frames && window.frames[strWindowName]) {
         var origOpenFunc = modulemapper.getOriginalSymbol(window, 'open');
@@ -106,10 +106,11 @@ exports.open = function(strUrl, strWindowName, strWindowFeatures, callbacks) {
     };
 
     strWindowFeatures = strWindowFeatures && JSON.stringify(strWindowFeatures);
+    strWindowHeaders = strWindowHeaders || "";
     // Slightly delay the actual native call to give the user a chance to
     // register event listeners first, otherwise some warnings or errors may be missed.
     setTimeout(function() {
-        exec(cb, cb, 'ThemeableBrowser', 'open', [strUrl, strWindowName, strWindowFeatures || '']);
+        exec(cb, cb, 'ThemeableBrowser', 'open', [strUrl, strWindowName, strWindowFeatures || '', strWindowHeaders]);
     }, 0);
     return iab;
 };
