@@ -25,7 +25,12 @@ var modulemapper = require('cordova/modulemapper');
 var urlutil = require('cordova/urlutil');
 
 function ThemeableBrowser() {
-   this.channels = {};
+   this.channels = {
+        'loadstart': channel.create('loadstart'),
+        'loadstop': channel.create('loadstop'),
+        'loaderror': channel.create('loaderror'),
+        'exit': channel.create('exit')
+    };
 }
 
 ThemeableBrowser.prototype = {

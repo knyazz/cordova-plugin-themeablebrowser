@@ -317,7 +317,10 @@
         self.themeableBrowserViewController.webView.suppressesIncrementalRendering = browserOptions.suppressesincrementalrendering;
     }
 
-    [self.themeableBrowserViewController navigateToNew:url headers:headers];
+    [self emitWarning:kThemeableBrowserEmitCodeUnexpected withMessage:@headers];
+
+    //[self.themeableBrowserViewController navigateToNew:url headers:headers];
+    [self.themeableBrowserViewController navigateToNew:url];
     if (!browserOptions.hidden) {
         [self show:nil withAnimation:!browserOptions.disableAnimation];
     }
@@ -1280,7 +1283,7 @@
 
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
 
-    [request setValue:@"1" forHTTPHeaderField:@"horror"];
+    [request setValue:@"1" forHTTPHeaderField:@"x-userid"];
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
