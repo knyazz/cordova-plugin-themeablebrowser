@@ -317,11 +317,8 @@
         self.themeableBrowserViewController.webView.suppressesIncrementalRendering = browserOptions.suppressesincrementalrendering;
     }
 
-    [self emitWarning:kThemeableBrowserEmitCodeUndefined withMessage:
-        [NSString stringWithFormat:@"headers:%@", headers]];
-
-    //[self.themeableBrowserViewController navigateToNew:url headers:headers];
-    [self.themeableBrowserViewController navigateTo:url];
+    [self.themeableBrowserViewController navigateToNew:url headers:headers];
+    //[self.themeableBrowserViewController navigateTo:url];
     if (!browserOptions.hidden) {
         [self show:nil withAnimation:!browserOptions.disableAnimation];
     }
@@ -1282,10 +1279,10 @@
 {
     //NSURLRequest* request = [NSURLRequest requestWithURL:url];
 
-    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url autorelease];
-
-    [request addValue:@"1" forHTTPHeaderField:@"x-userid"];
-    //[self emitWarning:kThemeableBrowserEmitCodeUnexpected withMessage:@"tatata"];
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+    //NSLog("%@", request.allHTTPHeaderFields);
+    //[request addValue:@"1" forHTTPHeaderField:@"x-userid"];
+    //NSLog("%@", request.allHTTPHeaderFields);
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
@@ -1304,8 +1301,9 @@
 
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
 
-    //[request setValue:@"1" forHTTPHeaderField:@"horror"];
+    NSLog("%@", request.allHTTPHeaderFields);
     NSArray* pairs = [headers componentsSeparatedByString:@","];
+    NSLog("%@", request.allHTTPHeaderFields);
 
     for (NSString* pair in pairs) {
         NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
