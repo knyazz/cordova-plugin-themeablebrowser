@@ -157,7 +157,7 @@
         }
 
         if ([target isEqualToString:kThemeableBrowserTargetSelf]) {
-            [self openInCordovaWebView:absoluteUrl withOptions:options];
+            [self openInThemeableBrowser:absoluteUrl withOptions:options withHeaders:headers];
         } else if ([target isEqualToString:kThemeableBrowserTargetSystem]) {
             [self openInSystem:absoluteUrl];
         } else { // _blank or anything else
