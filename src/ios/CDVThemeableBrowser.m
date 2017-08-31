@@ -1301,9 +1301,8 @@
 
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
 
-    NSLog("%@", request.allHTTPHeaderFields);
+    //NSLog(@"%@", request.allHTTPHeaderFields);
     NSArray* pairs = [headers componentsSeparatedByString:@","];
-    NSLog("%@", request.allHTTPHeaderFields);
 
     for (NSString* pair in pairs) {
         NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
@@ -1311,6 +1310,7 @@
         NSString* value = [keyvalue objectAtIndex:1];
         [request addValue:value forHTTPHeaderField:key];
     }
+    //NSLog(@"%@", request.allHTTPHeaderFields);
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
