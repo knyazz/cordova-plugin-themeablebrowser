@@ -118,6 +118,7 @@
 - (void)close;
 - (void)reload;
 - (void)navigateTo:(NSURL*)url;
+- (void)navigateToNew:(NSURL*)url (NSString*)headers;
 - (void)showLocationBar:(BOOL)show;
 - (void)showToolBar:(BOOL)show : (NSString*) toolbarPosition;
 - (void)setCloseButtonTitle:(NSString*)title;
