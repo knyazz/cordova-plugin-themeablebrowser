@@ -246,7 +246,8 @@
     }
 
     if (self.themeableBrowserViewController == nil) {
-        NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
+        NSString* userAgent = [CDVUserAgentUtil originalUserAgent];
+        //NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
         NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
         NSString* appendUserAgent = [self settingForKey:@"AppendUserAgent"];
         if(overrideUserAgent){
@@ -256,7 +257,7 @@
             userAgent = [userAgent stringByAppendingString: appendUserAgent];
         }
         self.themeableBrowserViewController = [[CDVThemeableBrowserViewController alloc]
-                                               initWithUserAgent:originalUA prevUserAgent:[self.commandDelegate userAgent]
+                                               initWithUserAgent:userAgent prevUserAgent:[self.commandDelegate userAgent]
                                                browserOptions: browserOptions
                                                navigationDelete:self
                                                statusBarStyle:[UIApplication sharedApplication].statusBarStyle];
