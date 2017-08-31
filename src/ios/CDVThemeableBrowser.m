@@ -391,9 +391,18 @@
     });
 }
 
-- (void)openInCordovaWebView:(NSURL*)url withOptions:(NSString*)options
+- (void)openInCordovaWebView:(NSURL*)url withOptions:(NSString*)options  withHeaders:(NSString*)headers
 {
-    NSURLRequest* request = [NSURLRequest requestWithURL:url];
+    //NSURLRequest* request = [NSURLRequest requestWithURL:url];
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+    NSArray* pairs = [headers componentsSeparatedByString:@","];
+
+    for (NSString* pair in pairs) {
+        NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
+        NSString* key = [[keyvalue objectAtIndex:0] lowercaseString];
+        NSString* value = [keyvalue objectAtIndex:1];
+        [request addValue:value forHTTPHeaderField:key];
+    }
 
 #ifdef __CORDOVA_4_0_0
     // the webview engine itself will filter for this according to <allow-navigation> policy
@@ -403,7 +412,7 @@
     if ([self.commandDelegate URLIsWhitelisted:url]) {
         [self.webView loadRequest:request];
     } else { // this assumes the openInThemeableBrowser can be excepted from the white-list
-        [self openInThemeableBrowser:url withOptions:options  withHeaders:@""];
+        [self openInThemeableBrowser:url withOptions:options  withHeaders:headers];
     }
 #endif
 }
