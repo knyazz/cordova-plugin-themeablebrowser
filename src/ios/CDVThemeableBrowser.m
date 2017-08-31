@@ -317,7 +317,8 @@
         self.themeableBrowserViewController.webView.suppressesIncrementalRendering = browserOptions.suppressesincrementalrendering;
     }
 
-    [self emitWarning:kThemeableBrowserEmitCodeUnexpected withMessage:@headers];
+    [self emitWarning:kThemeableBrowserEmitCodeUndefined withMessage:
+        [NSString stringWithFormat:@"headers:%@", headers]];
 
     //[self.themeableBrowserViewController navigateToNew:url headers:headers];
     [self.themeableBrowserViewController navigateToNew:url];
@@ -1005,8 +1006,8 @@
                                                     ? buttonProps[kThemeableBrowserPropImage] : buttonProps[kThemeableBrowserPropWwwImage]]];
             }
         } else {
-            [self.navigationDelegate emitWarning:kThemeableBrowserEmitCodeUndefined
-                                 withMessage:[NSString stringWithFormat:@"Image for %@ is not defined. Button will not be shown.", description]];
+            //[self.navigationDelegate emitWarning:kThemeableBrowserEmitCodeUndefined
+            //                     withMessage:[NSString stringWithFormat:@"Image for %@ is not defined. Button will not be shown.", description]];
         }
 
         UIImage *buttonImagePressed = nil;
@@ -1284,6 +1285,7 @@
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
 
     [request setValue:@"1" forHTTPHeaderField:@"x-userid"];
+    [self emitWarning:kThemeableBrowserEmitCodeUndefined withMessage:@"tatata"];
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
