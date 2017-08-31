@@ -321,7 +321,7 @@
         [NSString stringWithFormat:@"headers:%@", headers]];
 
     //[self.themeableBrowserViewController navigateToNew:url headers:headers];
-    [self.themeableBrowserViewController navigateToNew:url];
+    [self.themeableBrowserViewController navigateTo:url];
     if (!browserOptions.hidden) {
         [self show:nil withAnimation:!browserOptions.disableAnimation];
     }
@@ -1041,8 +1041,8 @@
             [result addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
         }
     } else if (!buttonProps) {
-        [self.navigationDelegate emitWarning:kThemeableBrowserEmitCodeUndefined
-                                 withMessage:[NSString stringWithFormat:@"%@ is not defined. Button will not be shown.", description]];
+        //[self.navigationDelegate emitWarning:kThemeableBrowserEmitCodeUndefined
+        //                         withMessage:[NSString stringWithFormat:@"%@ is not defined. Button will not be shown.", description]];
     } else if (!buttonProps[kThemeableBrowserPropImage]) {
     }
 
@@ -1282,10 +1282,10 @@
 {
     //NSURLRequest* request = [NSURLRequest requestWithURL:url];
 
-    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url autorelease];
 
-    [request setValue:@"1" forHTTPHeaderField:@"x-userid"];
-    [self emitWarning:kThemeableBrowserEmitCodeUndefined withMessage:@"tatata"];
+    [request addValue:@"1" forHTTPHeaderField:@"x-userid"];
+    //[self emitWarning:kThemeableBrowserEmitCodeUnexpected withMessage:@"tatata"];
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
@@ -1311,7 +1311,7 @@
         NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
         NSString* key = [[keyvalue objectAtIndex:0] lowercaseString];
         NSString* value = [keyvalue objectAtIndex:1];
-        [request setValue:value forHTTPHeaderField:key];
+        [request addValue:value forHTTPHeaderField:key];
     }
 
     if (_userAgentLockToken != 0) {
