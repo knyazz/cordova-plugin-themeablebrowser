@@ -61,7 +61,8 @@
 #pragma mark CDVThemeableBrowser
 
 @interface CDVThemeableBrowser () {
-    BOOL _isShown;
+    //BOOL _isShown;
+    NSInteger _previousStatusBarStyle;
     int _framesOpened;  // number of frames opened since the last time browser exited
     NSURL *initUrl;  // initial URL ThemeableBrowser opened with
     NSURL *originalUrl;
@@ -73,7 +74,8 @@
 #ifdef __CORDOVA_4_0_0
 - (void)pluginInitialize
 {
-    _isShown = NO;
+    //_isShown = NO;
+    _previousStatusBarStyle = -1;
     _framesOpened = 0;
     _callbackIdPattern = nil;
 }
@@ -82,7 +84,8 @@
 {
     self = [super initWithWebView:theWebView];
     if (self != nil) {
-        _isShown = NO;
+        //_isShown = NO;
+        _previousStatusBarStyle = -1;
         _framesOpened = 0;
         _callbackIdPattern = nil;
     }
@@ -90,6 +93,12 @@
     return self;
 }
 #endif
+
+- (id)settingForKey:(NSString*)key
+{
+    return [self.commandDelegate.settings objectForKey:[key lowercaseString]];
+}
+ 
 
 - (void)onReset
 {
@@ -238,6 +247,14 @@
 
     if (self.themeableBrowserViewController == nil) {
         NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
+        NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
+        NSString* appendUserAgent = [self settingForKey:@"AppendUserAgent"];
+        if(overrideUserAgent){
+            userAgent = overrideUserAgent;
+        }
+        if(appendUserAgent){
+            userAgent = [userAgent stringByAppendingString: appendUserAgent];
+        }
         self.themeableBrowserViewController = [[CDVThemeableBrowserViewController alloc]
                                                initWithUserAgent:originalUA prevUserAgent:[self.commandDelegate userAgent]
                                                browserOptions: browserOptions
@@ -316,13 +333,14 @@
               withMessage:@"Show called but already closed."];
         return;
     }
-    if (_isShown) {
+    if (_previousStatusBarStyle != -1) {
         [self emitWarning:kThemeableBrowserEmitCodeUnexpected
               withMessage:@"Show called but already shown"];
         return;
     }
 
-    _isShown = YES;
+    //_isShown = YES;
+    _previousStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
 
     CDVThemeableBrowserNavigationController* nav = [[CDVThemeableBrowserNavigationController alloc]
                                    initWithRootViewController:self.themeableBrowserViewController];
@@ -331,7 +349,41 @@
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self.themeableBrowserViewController != nil) {
-            [self.viewController presentViewController:nav animated:animated completion:nil];
+            //[self.viewController presentViewController:nav animated:animated completion:nil];
+            CGRect frame = [[UIScreen mainScreen] bounds];
+            UIWindow *tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+            UIViewController *tmpController = [[UIViewController alloc] init];
+            [tmpWindow setRootViewController:tmpController];
+            [tmpWindow setWindowLevel:UIWindowLevelNormal];
+
+            [tmpWindow makeKeyAndVisible];
+            [tmpController presentViewController:nav animated:animated completion:nil];
+        }
+    });
+}
+
+- (void)hide:(CDVInvokedUrlCommand*)command
+{
+    if (self.themeableBrowserViewController == nil) {
+        [self emitWarning:kThemeableBrowserEmitCodeUnexpected
+              withMessage:@"Tried to hide IAB after it was closed."];
+        return;
+
+
+    }
+    if (_previousStatusBarStyle == -1) {
+        [self emitWarning:kThemeableBrowserEmitCodeUnexpected
+              withMessage:@"Tried to hide IAB while already hidden"];
+        return;
+    }
+
+    _previousStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
+
+    // Run later to avoid the "took a long time" log message.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.themeableBrowserViewController != nil) {
+            _previousStatusBarStyle = -1;
+            [self.themeableBrowserViewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
         }
     });
 }
@@ -355,11 +407,13 @@
 
 - (void)openInSystem:(NSURL*)url
 {
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+    /*if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url];
     } else { // handle any custom schemes to plugins
         [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
-    }
+    }*/
+    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
+    [[UIApplication sharedApplication] openURL:url];
 }
 
 // This is a helper method for the inject{Script|Style}{Code|File} API calls, which
@@ -598,7 +652,14 @@
     self.callbackIdPattern = nil;
 
     _framesOpened = 0;
-    _isShown = NO;
+    //_isShown = NO;
+    if (IsAtLeastiOSVersion(@"7.0")) {
+        if (_previousStatusBarStyle != -1) {
+            [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle];
+        }
+    }
+
+    _previousStatusBarStyle = -1; // this value was reset before reapplying it. caused statusbar to stay black on ios7
 }
 
 - (void)emitEvent:(NSDictionary*)event
