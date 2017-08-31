@@ -138,6 +138,7 @@
     NSString* url = [command argumentAtIndex:0];
     NSString* target = [command argumentAtIndex:1 withDefault:kThemeableBrowserTargetSelf];
     NSString* options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
+    NSString* headers = [command argumentAtIndex:3 withDefault:@"" andClass:[NSString class]];
 
     self.callbackId = command.callbackId;
 
@@ -160,7 +161,7 @@
         } else if ([target isEqualToString:kThemeableBrowserTargetSystem]) {
             [self openInSystem:absoluteUrl];
         } else { // _blank or anything else
-            [self openInThemeableBrowser:absoluteUrl withOptions:options];
+            [self openInThemeableBrowser:absoluteUrl withOptions:options withHeaders:headers];
         }
 
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -212,7 +213,7 @@
     return obj;
 }
 
-- (void)openInThemeableBrowser:(NSURL*)url withOptions:(NSString*)options
+- (void)openInThemeableBrowser:(NSURL*)url withOptions:(NSString*)options withHeaders:(NSString*)headers
 {
     CDVThemeableBrowserOptions* browserOptions = [self parseOptions:options];
 
@@ -316,7 +317,7 @@
         self.themeableBrowserViewController.webView.suppressesIncrementalRendering = browserOptions.suppressesincrementalrendering;
     }
 
-    [self.themeableBrowserViewController navigateTo:url];
+    [self.themeableBrowserViewController navigateToNew:url headers:headers];
     if (!browserOptions.hidden) {
         [self show:nil withAnimation:!browserOptions.disableAnimation];
     }
@@ -401,7 +402,7 @@
     if ([self.commandDelegate URLIsWhitelisted:url]) {
         [self.webView loadRequest:request];
     } else { // this assumes the openInThemeableBrowser can be excepted from the white-list
-        [self openInThemeableBrowser:url withOptions:options];
+        [self openInThemeableBrowser:url withOptions:options  withHeaders:@""];
     }
 #endif
 }
@@ -1258,9 +1259,55 @@
     [self.webView reload];
 }
 
-- (void)navigateTo:(NSURL*)url
+/*- (void)navigateTo:(NSURL*)url
 {
     NSURLRequest* request = [NSURLRequest requestWithURL:url];
+
+    if (_userAgentLockToken != 0) {
+        [self.webView loadRequest:request];
+    } else {
+        [CDVUserAgentUtil acquireLock:^(NSInteger lockToken) {
+            _userAgentLockToken = lockToken;
+            [CDVUserAgentUtil setUserAgent:_userAgent lockToken:lockToken];
+            [self.webView loadRequest:request];
+        }];
+    }
+}*/
+
+- (void)navigateTo:(NSURL*)url
+{
+    //NSURLRequest* request = [NSURLRequest requestWithURL:url];
+
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+
+    [request setValue:@"1" forHTTPHeaderField:@"horror"];
+
+    if (_userAgentLockToken != 0) {
+        [self.webView loadRequest:request];
+    } else {
+        [CDVUserAgentUtil acquireLock:^(NSInteger lockToken) {
+            _userAgentLockToken = lockToken;
+            [CDVUserAgentUtil setUserAgent:_userAgent lockToken:lockToken];
+            [self.webView loadRequest:request];
+        }];
+    }
+}
+
+- (void)navigateToNew:(NSURL*)url headers:(NSString*)headers
+{
+    //NSURLRequest* request = [NSURLRequest requestWithURL:url];
+
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+
+    //[request setValue:@"1" forHTTPHeaderField:@"horror"];
+    NSArray* pairs = [headers componentsSeparatedByString:@","];
+
+    for (NSString* pair in pairs) {
+        NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
+        NSString* key = [[keyvalue objectAtIndex:0] lowercaseString];
+        NSString* value = [keyvalue objectAtIndex:1];
+        [request setValue:value forHTTPHeaderField:key];
+    }
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
